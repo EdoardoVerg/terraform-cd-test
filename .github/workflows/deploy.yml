@@ -11,6 +11,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: "1.5.0"  # Use the latest stable version
+    
     - name: Set up Google Cloud
       uses: google-github-actions/setup-gcloud@v0
       with:
@@ -26,10 +31,14 @@ jobs:
         docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-cloud-run-service .
         docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-cloud-run-service
     
-    - name: Deploy to Cloud Run with Terraform
+    - name: Terraform Init
       run: |
         cd terraform
         terraform init
+    
+    - name: Terraform Apply
+      run: |
+        cd terraform
         terraform apply -auto-approve \
           -var "project_id=${{ secrets.GCP_PROJECT_ID }}" \
           -var "service_account_email=${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}"
