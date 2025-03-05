@@ -26,6 +26,12 @@ jobs:
     - name: Configure Docker
       run: gcloud auth configure-docker
     
+    - name: Remove Existing Cloud Run Service
+      run: |
+        gcloud run services delete my-cloud-run-service \
+          --region=europe-west3 \
+          --quiet || true
+    
     - name: Build and Push Docker Image
       run: |
         docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-cloud-run-service .
