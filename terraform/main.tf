@@ -2,6 +2,14 @@ resource "google_cloud_run_service" "default" {
   name     = var.service_name
   location = var.region
 
+  # Add this lifecycle block
+  lifecycle {
+    ignore_changes = [
+      template[0].metadata[0].annotations,
+      metadata[0].annotations
+    ]
+  }
+
   template {
     spec {
       service_account_name = var.service_account_email
@@ -12,21 +20,7 @@ resource "google_cloud_run_service" "default" {
   }
 
   traffic {
-    percent         = 100
     latest_revision = true
+    percent         = 100
   }
-}
-
-resource "google_cloud_run_service_iam_policy" "public" {
-  location = google_cloud_run_service.default.location
-  service  = google_cloud_run_service.default.name
-
-  policy_data = jsonencode({
-    bindings = [
-      {
-        role = "roles/run.invoker"
-        members = ["allUsers"]
-      }
-    ]
-  })
 }
