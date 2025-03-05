@@ -33,9 +33,11 @@ variable "service_name" {
 }
 
 variable "service_account_email" {
+  default     = "github-actions-deployer@soft-analytics-gcp.iam.gserviceaccount.com"
   description = "Service account email for Cloud Run"
   type        = string
 }
+
 
 resource "google_cloud_run_service" "default" {
   name     = var.service_name
@@ -70,19 +72,13 @@ resource "null_resource" "always_run" {
   }
 }
 
-resource "google_cloud_run_service_iam_policy" "public" {
-  location = google_cloud_run_service.default.location
+resource "google_cloud_run_service_iam_member" "invoker" {
   service  = google_cloud_run_service.default.name
-
-  policy_data = jsonencode({
-    bindings = [
-      {
-        role = "roles/run.invoker"
-        members = ["allUsers"]
-      }
-    ]
-  })
+  location = google_cloud_run_service.default.location
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${var.service_account_email}"
 }
+
 
 output "service_url" {
   value = google_cloud_run_service.default.status[0].url
